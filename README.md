@@ -19,8 +19,8 @@
 * API 조회시에도 엔티티로 조회를 하면안된다. 마찬가지로 API스펙 변경에 우려가 있다.
   * 조회용 DTO를 만들어 최대한 유연하게 작성하여 보여준다.
   ~~~
-  // 엔티티 직접노출
-  @GetMapping("/api/v1/members")
+    // 엔티티 직접노출
+    @GetMapping("/api/v1/members")
     public List<Member> membersV1() {
         return memberService.findMembers();
     }
@@ -41,4 +41,6 @@
         // private int size; ...
         private T data;
     }
-  ~~~# JPA2
+  ~~~
+
+### 지연로딩 조회 성능 최적화
