@@ -54,18 +54,15 @@
 * SQL 사용할때처럼 원하는 값을 선택하여 new 명령어를 사용 JPQL 결과를 DTO로 즉시 반환
 * 데이터를 직접 선택하므로 DB -> 어플리케이션 네트워크 용량 최적화(생각보다 미비)
 * repository에 재사용성이 떨어지게된다. 유연하지 않음
-  * 바로 DTO 반환은 권장하지 않습니다.
 ~~~
-// 권장
 return em.createQuery(
                 "select o from Order o" +
                         " join fetch o.member m" +
                         " join fetch o.delivery d",Order.class
         ).getResultList();
 
-// 권장하지 않음
 return em.createQuery(
-                "select new jpabook.jpashop.repository.OrderSimpleQueryDto(o.id, m.name, o.orderDate, o.status, d.address)" +
+                "select new jpabook.jpashop.repository.order.simplequery.OrderSimpleQueryDto(o.id, m.name, o.orderDate, o.status, d.address)" +
                         " from Order o" +
                         " join o.member m" +
                         " join o.delivery d",OrderSimpleQueryDto.class
