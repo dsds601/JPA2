@@ -101,13 +101,7 @@ public class OrderRepository {
         return query.getResultList();
     }
 
-    public List<Order> findAllWithMemberDelivery() {
-        return em.createQuery(
-                "select o from Order o" +
-                        " join fetch o.member m" +
-                        " join fetch o.delivery d", Order.class)
-                .getResultList();
-    }
+
 
     public List<Order> findAllWithItem() {
         return em.createQuery(
@@ -127,6 +121,32 @@ public class OrderRepository {
                 .setFirstResult(offset)
                 .setMaxResults(limit)
                 .getResultList();
+    }
+
+    /**
+     * 활용도가 높다
+     * @return
+     */
+    public List<Order> findAllWithMemberDelivery() {
+        return em.createQuery(
+                "select o from Order o" +
+                        " join fetch o.member m" +
+                        " join fetch o.delivery d",Order.class
+        ).getResultList();
+
+    }
+
+    /**
+     * 활용도 떨어지는 대신 바로 DTO반환 성능은 위 메서드보다 조금 더 좋음
+     * @return
+     */
+    public List<OrderSimpleQueryDto> findOrderDtos() {
+        return em.createQuery(
+                "select new jpabook.jpashop.repository.OrderSimpleQueryDto(o.id, m.name, o.orderDate, o.status, d.address)" +
+                        " from Order o" +
+                        " join o.member m" +
+                        " join o.delivery d",OrderSimpleQueryDto.class
+        ).getResultList();
     }
 }
 
