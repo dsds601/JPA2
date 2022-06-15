@@ -68,3 +68,22 @@ return em.createQuery(
                         " join o.delivery d",OrderSimpleQueryDto.class
         ).getResultList();
 ~~~
+
+* xToOne 이 아닌 oneToMany 같은 일대 다 조회를 통해 최적화하는 방법
+* fetch join 이용하여 sql 1번으로 조회
+* distinct를 사용하여 데이터베이스에 row에 중복조회를 막아준다.
+* 단점 일대다를 페치조인하는 순간 부터는 페이징처리가 불가능하다.
+* 메모리에 데이터를 모두 다 올리고 페이징 처리를 진행하는데 많은 양을 메모리에 올려서 하는경우 error가 발생하여 어플리케이션이 죽을수 있다.
+  * 너무 위험하므로 사용하면 안된다.
+* 컬렉션 페치조인은 1개만 사용할 수 있다. n대n대n이라면 엄청난 뻥튀기가 되어 데이터 자체 정합성이 이상해진다.
+~~~
+public List<Order> findAllWithItem() {
+        return em.createQuery(
+                "select distinct o from Order o" +
+                        " join fetch o.member m" +
+                        " join fetch o.delivery d" +
+                        " join fetch o.orderItems oi" +
+                        " join fetch oi.item i",Order.class)
+                .getResultList();
+    }
+~~~
