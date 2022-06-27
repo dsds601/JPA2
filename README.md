@@ -87,3 +87,39 @@ public List<Order> findAllWithItem() {
                 .getResultList();
     }
 ~~~
+
+### 페이징 한계 돌파
+* 컬렉션을 조인하게 되면 페이징이 불가능하게된다.
+  * 일 기준으로 페이징을 해야되는데 데이터를 다(N)개 기준으로 row가 생성되어서 문제가 된다.
+  * 페치조인을 페이징 시도하는 경우 모든 데이터를 메모리에 올려 페이징을 시도하여 최악의 경우 OutofMemoryError 발생하여 애플리케이션을 뻗을 수 있음
+
+* 먼저 xToOne 관계를 모두 페치 조인을 한다.
+  * row수를 증가시키지 않기 때문에 페이징 조인 쿼리에 영향을 안주게된다.
+* 컬렉션은 지연 로딩으로 조인한다.
+* 지연 로딩 성능을 최적화 위해 hibernate.default.batch_size , @BatchSize를 적용한다.
+  * 미리 정해진 사이즈만큼 메모리에 조회하는것 -> OutofMemoryError 방지
+  * 1:N:M을 -> 1:1:1 로 만들어주는 엄청난 최적화 기술이다.
+* batchsize 최대 사이즈는 1000으로 제한하여 사용하자
+
+
+### spring.jpa.open-in-view
+* 애플리케이션 시작 시점에 warn 로그를 남기는데 이유가 있다. 영속성 컨텍스트는 화면에 다 그려질때까지 끝까지 데이터베이스 커넥션을 유지하고 있다.
+  * 위 덕분에 지연로딩이 가능했다.
+* 그런데 이 전략은 오랜시간 데이터베이스 커넥션을 오랜시간 유지하여 많은 리소스를 사용하기에 실시간 트래픽이 중요한 애플리케이션에는 커넥션이 모자랄 수 있다.
+* **단점 :** 예를 들어 컨트롤러 외부에서 api호출하며 외부 api대기 시간만큼 커넥션 리소스를 반환 못하고 유지하고 있어야한다.
+* spring.jpa.open-in-view : false -> 데이터베이스 커넥션 유지시간을 짧게 가져감
+  * 서비스 계층에 트랜잭션이 끝나면 데이터베이스 커넥션을 반환함 -> 커넥션 리소를 낭비하지않음
+  * **단점 :* * 지연로딩을 하려면 영속성 컨텍스트가 살아 있어야하는데 모든 지연로딩을 트랜잭션 안에서 처리해야한다. 컨트롤러나 화면에서 지연로딩을 처리하는 로직은 작동하지 않는다.
+
+* **해결방안 중 1 :** : 쿼리용 서비스를 만들어 @transaction 안에 지연로딩이 되는 로직 자체를 안에 넣어 동작 시킨다.
+* 다 안에 넣고 컨틀롤러에서 orderqueryService.service1(): <- 이런식으로 동작시킴
+  ~~~
+  @Transaction(readonly: true)
+  public class OrderQueryService {
+  List<Order> orders = orderRepository.findAllWithItem();
+        return orders.stream().map(OrderDto::new)
+                .collect(Collectors.toList());
+  }
+  ~~~
+  
+* 참고 : 고객서비스 기반의 실시간 API는 OSIV(open session in view) 에서는 끄고 , ADMIN 처럼 커넥션을 많이 사용하지 않는곳에는 OSIV를 켠다.

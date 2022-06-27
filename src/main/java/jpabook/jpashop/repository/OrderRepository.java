@@ -125,6 +125,7 @@ public class OrderRepository {
     }
 
     /**
+     * xToOne 관계 페치 조인으로 모두 가져옴 페이징 영향 없음
      * 활용도가 높다
      * @return
      */
@@ -134,8 +135,9 @@ public class OrderRepository {
                         " join fetch o.member m" +
                         " join fetch o.delivery d",Order.class
         ).getResultList();
-
     }
+
+
 
 
 }

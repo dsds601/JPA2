@@ -1,5 +1,6 @@
 package jpabook.jpashop.service;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jpabook.jpashop.domain.item.Item;
 import jpabook.jpashop.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
